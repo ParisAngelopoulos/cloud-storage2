@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';  // Of je database host
+$host = 'localhost';
 $db   = 'user_management';
-$user = 'root';       // Jouw database gebruiker
-$pass = '';           // Jouw database wachtwoord
+$user = 'root';       
+$pass = '';           
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";

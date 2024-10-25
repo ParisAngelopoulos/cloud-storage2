@@ -1,6 +1,7 @@
 <?php
 session_start();
-session_destroy(); // Vernietig de sessie
-header('Location: login.php'); // Redirect naar inloggen
+session_destroy();
+
+header('Location: index.php');
 exit;
 ?>
