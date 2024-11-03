@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$db   = 'user_management';
+$db   = 'file_sharing';
 $user = 'root';       
 $pass = '';           
 $charset = 'utf8mb4';
