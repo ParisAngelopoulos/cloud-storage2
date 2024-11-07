@@ -1,47 +1,56 @@
 <?php
 session_start();
-include 'db.php'; 
+include 'db.php';
 
-$message = ""; // Voor het opslaan van succes- of foutberichten
+$message = ""; // For storing success or error messages
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $file_name = $_POST['file_name'];
-    $shared_with_email = $_POST['email'];
+    $file_name = trim($_POST['file_name']);
+    $shared_with_email = trim($_POST['email']);
 
-    // Get the user ID and name of the email to share the file with
-    $stmt = $pdo->prepare("SELECT id, username FROM users WHERE email = :email");
-    $stmt->execute(['email' => $shared_with_email]);
-    $user = $stmt->fetch();
+    // Check if both file_name and email are provided
+    if ($file_name && $shared_with_email) {
+        // Fetch user ID for the provided email
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
+        $stmt->execute(['email' => $shared_with_email]);
+        $user = $stmt->fetch();
 
-    if ($user) {
-        $shared_with_id = $user['id'];
-        $shared_by_id = $_SESSION['user_id'];
-        $shared_by_name = $_SESSION['username']; // Zorg ervoor dat je deze sessie variabele instelt tijdens het inloggen
+        if ($user) {
+            $shared_with_id = $user['id'];  // User ID to store in the shared_with column
+            $shared_by_id = $_SESSION['user_id'];
+            $shared_by_name = $_SESSION['username']; // Ensure this is set during login
 
-        // Debugging statements
-        var_dump($shared_by_id, $shared_by_name); // Controleer deze waarden
-
-        // Insert the shared file into the database
-        $stmt = $pdo->prepare("INSERT INTO shared_files (file_name, shared_with, shared_with_email, shared_by, shared_by_name) VALUES (:file_name, :shared_with, :shared_with_email, :shared_by, :shared_by_name)");
-        if ($stmt->execute([
-            'file_name' => $file_name, 
-            'shared_with' => $shared_with_id, 
-            'shared_with_email' => $shared_with_email,
-            'shared_by' => $shared_by_id, 
-            'shared_by_name' => $shared_by_name
-        ])) {
-            $message = "Bestand succesvol gedeeld met $shared_with_email!";
+            // Insert the shared file entry using the user ID for shared_with
+            $stmt = $pdo->prepare("
+                INSERT INTO shared_files (file_name, shared_with, shared_by, shared_by_name) 
+                VALUES (:file_name, :shared_with, :shared_by, :shared_by_name)
+            ");
+            if ($stmt->execute([
+                'file_name' => $file_name, 
+                'shared_with' => $shared_with_id,  // Only the user ID, not email
+                'shared_by' => $shared_by_id, 
+                'shared_by_name' => $shared_by_name
+            ])) {
+                $message = "Bestand succesvol gedeeld met $shared_with_email!";
+            } else {
+                $message = "Er is een fout opgetreden bij het delen van het bestand.";
+            }
         } else {
-            $message = "Er is een fout opgetreden bij het delen van het bestand.";
+            $message = "Gebruiker niet gevonden met dit e-mailadres.";
         }
     } else {
-        $message = "Gebruiker niet gevonden met dit e-mailadres.";
+        $message = "Zorg ervoor dat zowel het bestand als het e-mailadres zijn ingevuld.";
     }
 }
 
 // Fetch files shared with the logged-in user
-$email = $_SESSION['email']; // Assuming user email is stored in session
-$stmt = $pdo->prepare("SELECT f.file_name, f.shared_by_name FROM shared_files f JOIN users u ON f.shared_with = u.id WHERE u.email = :email");
+$email = $_SESSION['email'];
+$stmt = $pdo->prepare("
+    SELECT f.file_name, f.shared_by_name 
+    FROM shared_files f 
+    JOIN users u ON f.shared_with = u.id 
+    WHERE u.email = :email
+");
 $stmt->execute(['email' => $email]);
 $shared_files = $stmt->fetchAll();
 ?>

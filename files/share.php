@@ -1,36 +1,48 @@
 <?php
 session_start();
-include 'db.php'; // Zorg ervoor dat je de database verbinding hebt
+include 'db.php'; // Ensure the database connection
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php"); // Redirect naar inlogpagina als niet ingelogd
+    header("Location: index.php"); // Redirect to login if not logged in
     exit();
 }
 
 $userId = $_SESSION['user_id'];
 
-// Gedeelde bestanden ophalen
+// Fetch files shared with the logged-in user
 $stmt = $pdo->prepare("SELECT * FROM shared_files WHERE shared_with = ?");
-$stmt->execute([$_SESSION['username']]);
+$stmt->execute([$userId]); // Use user ID here instead of username
 $shared_files = $stmt->fetchAll();
 
-// Geüploade bestanden ophalen
+// Fetch files uploaded by the logged-in user
 $stmt = $pdo->prepare("SELECT * FROM files WHERE uploaded_by = ?");
 $stmt->execute([$userId]);
 $uploaded_files = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $file_name = trim($_POST['file_name']); // Dit komt nu uit de dropdown
+    $file_name = trim($_POST['file_name']); // Comes from the dropdown
     $email = trim($_POST['email']);
 
-    // Bestanden delen
-    $stmt = $pdo->prepare("INSERT INTO shared_files (file_name, shared_by, shared_with) VALUES (?, ?, ?)");
-    if ($stmt->execute([$file_name, $_SESSION['user_id'], $email])) {
-        $_SESSION['message'] = "Bestand succesvol gedeeld met $email.";
-    } else {
-        $_SESSION['message'] = "Er is een probleem opgetreden tijdens het delen van het bestand.";
-    }
+    // Fetch the user ID associated with the provided email
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
+    $stmt->execute(['email' => $email]);
+    $user = $stmt->fetch();
 
+    if ($user) {
+        $shared_with_id = $user['id']; // ID of the user the file is shared with
+        $shared_by_id = $_SESSION['user_id']; // ID of the current (logged-in) user
+        $shared_by_name = $_SESSION['username']; // Name of the current user
+    
+        // Insert the shared file with shared_by_name included
+        $stmt = $pdo->prepare("INSERT INTO shared_files (file_name, shared_by, shared_with, shared_by_name, shared_with_email) VALUES (?, ?, ?, ?, ?)");
+        if ($stmt->execute([$file_name, $shared_by_id, $shared_with_id, $shared_by_name, $email])) {
+            $_SESSION['message'] = "Bestand succesvol gedeeld met $email.";
+        } else {
+            $_SESSION['message'] = "Er is een probleem opgetreden tijdens het delen van het bestand.";
+        }
+    }
+    
+    
     header("Location: share.php");
     exit();
 }
@@ -48,6 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container mx-auto px-4 py-8 w-full max-w-lg">
         <h1 class="text-3xl font-bold mb-6 text-center">Deel een Bestand</h1>
         
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                <?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?>
+            </div>
+        <?php endif; ?>
+
         <form action="share.php" method="POST" class="bg-white shadow-md rounded-lg p-6 mb-8">
             <div class="mb-4">
                 <label for="file_name" class="block text-sm font-medium text-gray-700">Kies een bestand om te delen:</label>
