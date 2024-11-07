@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $file_name = $_POST['file_name'];
     $shared_with_email = $_POST['email'];
 
-    // Get the user ID of the email to share the file with
+    // Get the user ID and name of the email to share the file with
     $stmt = $pdo->prepare("SELECT id, username FROM users WHERE email = :email");
     $stmt->execute(['email' => $shared_with_email]);
     $user = $stmt->fetch();
@@ -17,6 +17,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $shared_with_id = $user['id'];
         $shared_by_id = $_SESSION['user_id'];
         $shared_by_name = $_SESSION['username']; // Zorg ervoor dat je deze sessie variabele instelt tijdens het inloggen
+
+        // Debugging statements
+        var_dump($shared_by_id, $shared_by_name); // Controleer deze waarden
 
         // Insert the shared file into the database
         $stmt = $pdo->prepare("INSERT INTO shared_files (file_name, shared_with, shared_with_email, shared_by, shared_by_name) VALUES (:file_name, :shared_with, :shared_with_email, :shared_by, :shared_by_name)");

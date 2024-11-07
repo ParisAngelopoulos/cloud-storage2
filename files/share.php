@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Bestanden delen
     $stmt = $pdo->prepare("INSERT INTO shared_files (file_name, shared_by, shared_with) VALUES (?, ?, ?)");
-    if ($stmt->execute([$file_name, $_SESSION['username'], $email])) {
+    if ($stmt->execute([$file_name, $_SESSION['user_id'], $email])) {
         $_SESSION['message'] = "Bestand succesvol gedeeld met $email.";
     } else {
         $_SESSION['message'] = "Er is een probleem opgetreden tijdens het delen van het bestand.";
