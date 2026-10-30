@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username)) {
         $usernameError = "Gebruikersnaam is verplicht.";
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt = $pdo->prepare("SELECT * FROM cs_users WHERE username = ?");
         $stmt->execute([$username]);
         if ($stmt->fetch()) {
             $usernameError = "Deze gebruikersnaam is al in gebruik.";
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $emailError = "Voer een geldig e-mailadres in.";
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt = $pdo->prepare("SELECT * FROM cs_users WHERE email = ?");
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
             $emailError = "Dit e-mailadres is al in gebruik.";
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($usernameError) && empty($passwordError) && empty($confirmPasswordError) && empty($emailError)) {
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, 'user')");
+        $stmt = $pdo->prepare("INSERT INTO cs_users (username, password, email, role) VALUES (?, ?, ?, 'user')");
         if ($stmt->execute([$username, $hashedPassword, $email])) {
             $successMessage = "Registratie succesvol! Je kunt nu inloggen.";
         } else {

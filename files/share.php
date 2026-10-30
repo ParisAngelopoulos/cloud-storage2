@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
 
     // Fetch the user ID associated with the provided email
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
+    $stmt = $pdo->prepare("SELECT id FROM cs_users WHERE email = :email");
     $stmt->execute(['email' => $email]);
     $user = $stmt->fetch();
 
