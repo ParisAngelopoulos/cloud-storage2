@@ -1,22 +1,17 @@
 <?php
-// On the web host, db_config.php (written on deploy, not in git) holds the login; locally XAMPP defaults
-$c = is_file(__DIR__ . '/db_config.php') ? require __DIR__ . '/db_config.php' : [];
-$host = $c['host'] ?? 'localhost';
-$db   = $c['database'] ?? 'file_sharing';
-$user = $c['user'] ?? 'root';
-$pass = $c['password'] ?? '';
-$charset = 'utf8mb4';
+// The database is a SQLite file in private/ (not reachable from the web). The first time it is
+// missing, it is created from private/database.sql with the example data, so no setup is needed.
+$file = __DIR__ . '/private/database.sqlite';
+$new = !is_file($file);
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-    throw new \PDOException($e->getMessage(), (int)$e->getCode());
+$pdo = new PDO('sqlite:' . $file, null, null, $options);
+$pdo->exec('PRAGMA foreign_keys = ON');
+if ($new) {
+    $pdo->exec(file_get_contents(__DIR__ . '/private/database.sql'));
 }
 ?>
