@@ -9,7 +9,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 include 'db.php';
 
 // Aantal gebruikers opvragen
-$stmt = $pdo->query("SELECT COUNT(*) as total_users FROM cs_users");
+$stmt = $pdo->query("SELECT COUNT(*) as total_users FROM users");
 $totalUsers = $stmt->fetchColumn();
 ?>
 
