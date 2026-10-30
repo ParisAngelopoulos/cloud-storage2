@@ -5,9 +5,9 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET NAMES utf8mb4;
 
-DROP TABLE IF EXISTS `shared_files`, `files`, `users`;
+DROP TABLE IF EXISTS `shared_files`, `files`, `cs_users`;
 
-CREATE TABLE `users` (
+CREATE TABLE `cs_users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`) VALUES
+INSERT INTO `cs_users` (`id`, `username`, `email`, `password`, `role`) VALUES
 (1, 'admin', 'admin@voorbeeld.nl', '$2y$10$vG0ZdRCbBKa5nVToUotrhOxBOHQe2u3lYKDPjQ379RsArGEwl9D2a', 'admin'),
 (2, 'paris', 'paris@voorbeeld.nl', '$2y$10$IMPAPY9Fi.iifo0SPHWkm.YJrpSPw7R1sv/kUZg9Y/rA45Y2jv/mS', 'user'),
 (3, 'sanne', 'sanne@voorbeeld.nl', '$2y$10$IMPAPY9Fi.iifo0SPHWkm.YJrpSPw7R1sv/kUZg9Y/rA45Y2jv/mS', 'user'),
@@ -32,7 +32,7 @@ CREATE TABLE `files` (
   `upload_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `uploaded_by` (`uploaded_by`),
-  CONSTRAINT `files_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `files_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `cs_users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `files` (`id`, `file_name`, `file_path`, `uploaded_by`, `upload_date`) VALUES
