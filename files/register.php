@@ -65,10 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registreren</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/tailwind.css">
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
+<body class="bg-gradient-to-br from-sky-50 to-slate-100 text-gray-800 flex flex-col items-center justify-center min-h-screen p-4">
+    <a href="index.php" class="mb-6 flex items-center gap-2 text-2xl font-bold text-brand"><span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-brand text-white">☁</span> Cloud Storage</a>
+    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-lg border border-slate-200">
         <h2 class="text-2xl font-bold text-center text-gray-800">Registreren</h2>
         <?php if (!empty($successMessage)): ?>
             <p class="text-green-600 text-center"><?php echo $successMessage; ?></p>
@@ -76,35 +77,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form action="register.php" method="post" class="space-y-4">
             <div class="form-group">
                 <label for="username" class="block text-sm font-medium text-gray-700">Gebruikersnaam:</label>
-                <input type="text" name="username" required class="block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                <input type="text" name="username" required class="block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition duration-150 ease-in-out">
                 <?php if (!empty($usernameError)): ?>
                     <p class="text-red-500 text-sm"><?php echo $usernameError; ?></p>
                 <?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="email" class="block text-sm font-medium text-gray-700">E-mail:</label>
-                <input type="email" name="email" required class="block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                <input type="email" name="email" required class="block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition duration-150 ease-in-out">
                 <?php if (!empty($emailError)): ?>
                     <p class="text-red-500 text-sm"><?php echo $emailError; ?></p>
                 <?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="password" class="block text-sm font-medium text-gray-700">Wachtwoord:</label>
-                <input type="password" name="password" required class="block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                <input type="password" name="password" required class="block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition duration-150 ease-in-out">
                 <?php if (!empty($passwordError)): ?>
                     <p class="text-red-500 text-sm"><?php echo $passwordError; ?></p>
                 <?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="confirm_password" class="block text-sm font-medium text-gray-700">Bevestig Wachtwoord:</label>
-                <input type="password" name="confirm_password" required class="block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                <input type="password" name="confirm_password" required class="block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition duration-150 ease-in-out">
                 <?php if (!empty($confirmPasswordError)): ?>
                     <p class="text-red-500 text-sm"><?php echo $confirmPasswordError; ?></p>
                 <?php endif; ?>
             </div>
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition duration-200">Registreren</button>
+            <button type="submit" class="w-full bg-brand text-white font-bold py-2 rounded-lg hover:bg-brand-dark transition duration-200">Registreren</button>
         </form>
-        <p class="text-center mt-4">Heb je al een account? <a href="index.php" class="text-blue-600 hover:underline">Log in</a>.</p>
+        <p class="text-center mt-4">Heb je al een account? <a href="index.php" class="text-brand hover:underline">Log in</a>.</p>
     </div>
 </body>
 </html>

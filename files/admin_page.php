@@ -8,9 +8,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 // Databaseverbinding (verander de gegevens hier naar jouw situatie)
 include 'db.php';
 
-// Aantal gebruikers opvragen
-$stmt = $pdo->query("SELECT COUNT(*) as total_users FROM users");
-$totalUsers = $stmt->fetchColumn();
+// Numbers for the overview
+$totalUsers = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+$totalFiles = $pdo->query("SELECT COUNT(*) FROM files")->fetchColumn();
+$totalShares = $pdo->query("SELECT COUNT(*) FROM shared_files")->fetchColumn();
+// Files per user, for the bar chart
+$perUser = $pdo->query("SELECT users.username, users.role, COUNT(files.id) AS files
+                        FROM users LEFT JOIN files ON files.uploaded_by = users.id
+                        GROUP BY users.id ORDER BY files DESC, users.username")->fetchAll();
+$max = max(1, ...array_map(fn ($u) => (int)$u['files'], $perUser));
 ?>
 
 <!DOCTYPE html>
@@ -18,46 +24,39 @@ $totalUsers = $stmt->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Pagina</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Voeg Chart.js toe -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> <!-- Voeg Tailwind CSS toe -->
+    <title>Overzicht · Cloud Storage</title>
+    <link rel="stylesheet" href="css/tailwind.css">
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-4">Welkom Admin!</h1>
-        <p class="mb-4">Je hebt toegang tot de admin functionaliteiten.</p>
-        <a href="logout.php" class="text-blue-600 hover:underline">Uitloggen</a>
+<body class="bg-slate-50 text-gray-800 min-h-screen">
+    <?php include 'header.php'; ?>
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold text-gray-900">Welkom, admin</h1>
+        <p class="text-gray-600 mb-6">Een overzicht van wat er in Cloud Storage gebeurt.</p>
 
-        <!-- Grafiek sectie -->
-        <div class="mt-8">
-            <h2 class="text-2xl font-semibold mb-4">Aantal Gebruikers</h2>
-            <canvas id="userChart" width="400" height="200"></canvas>
+        <div class="grid gap-4 sm:grid-cols-3 mb-8">
+            <?php foreach ([['Gebruikers', $totalUsers, '👤'], ['Bestanden', $totalFiles, '📁'], ['Keer gedeeld', $totalShares, '🔗']] as [$label, $count, $icon]): ?>
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
+                    <div class="text-2xl"><?php echo $icon; ?></div>
+                    <div class="mt-2 text-3xl font-bold text-gray-900"><?php echo (int)$count; ?></div>
+                    <div class="text-sm text-gray-500"><?php echo $label; ?></div>
+                </div>
+            <?php endforeach; ?>
         </div>
-    </div>
 
-    <script>
-        // Configuratie van de grafiek
-        const ctx = document.getElementById('userChart').getContext('2d');
-        const userChart = new Chart(ctx, {
-            type: 'bar', // of 'line', 'pie', etc.
-            data: {
-                labels: ['Totaal Aantal Gebruikers'], // Label voor de grafiek
-                datasets: [{
-                    label: 'Aantal gebruikers',
-                    data: [<?php echo $totalUsers; ?>], // Aantal gebruikers uit PHP
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)', // Kleur van de balk
-                    borderColor: 'rgba(54, 162, 235, 1)', // Randkleur
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
+        <section class="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-4">Bestanden per gebruiker</h2>
+            <div class="space-y-3">
+                <?php foreach ($perUser as $user): ?>
+                    <div class="flex items-center gap-3 text-sm">
+                        <span class="w-24 truncate"><?php echo htmlspecialchars($user['username']); ?><?php if ($user['role'] === 'admin') echo ' <span class="text-xs text-gray-400">(admin)</span>'; ?></span>
+                        <div class="flex-1 h-6 bg-slate-100 rounded">
+                            <div class="h-6 bg-brand rounded" style="width: <?php echo round($user['files'] / $max * 100); ?>%"></div>
+                        </div>
+                        <span class="w-6 text-right font-semibold"><?php echo (int)$user['files']; ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    </main>
 </body>
 </html>

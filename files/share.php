@@ -66,53 +66,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bestanden Delen</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/tailwind.css">
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
-    <div class="container mx-auto px-4 py-8 w-full max-w-lg">
-        <a href="home.php" class="text-blue-600 hover:underline">&larr; Terug naar mijn bestanden</a>
-        <h1 class="text-3xl font-bold mb-6 mt-4 text-center">Deel een Bestand</h1>
-        
+<body class="bg-slate-50 text-gray-800 min-h-screen">
+    <?php include 'header.php'; include 'file_helpers.php'; ?>
+    <main class="max-w-5xl mx-auto px-4 py-8">
         <?php if (isset($_SESSION['message'])): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+            <div class="mb-6 rounded-lg bg-sky-50 border border-sky-200 text-sky-900 px-4 py-3">
                 <?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?>
             </div>
         <?php endif; ?>
 
-        <form action="share.php" method="POST" class="bg-white shadow-md rounded-lg p-6 mb-8">
-            <div class="mb-4">
-                <label for="file_name" class="block text-sm font-medium text-gray-700">Kies een bestand om te delen:</label>
-                <select id="file_name" name="file_name" required class="block w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">-- Selecteer een bestand --</option>
-                    <?php foreach ($uploaded_files as $file): ?>
-                        <option value="<?php echo htmlspecialchars($file['file_name']); ?>"><?php echo htmlspecialchars($file['file_name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="email" class="block text-sm font-medium text-gray-700">Deel met E-mailadres:</label>
-                <input type="email" id="email" name="email" required class="block w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition duration-200">Deel Bestand</button>
-        </form>
+        <div class="grid gap-6 md:grid-cols-2">
+            <section>
+                <h1 class="text-xl font-bold text-gray-900 mb-3">Een bestand delen</h1>
+                <form action="share.php" method="POST" class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700">Welk bestand?</span>
+                        <select id="file_name" name="file_name" required class="mt-1 block w-full border border-slate-300 rounded-lg p-2 bg-white">
+                            <option value="">-- Kies een van je bestanden --</option>
+                            <?php foreach ($uploaded_files as $file): ?>
+                                <option value="<?php echo htmlspecialchars($file['file_name']); ?>"><?php echo htmlspecialchars($file['file_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700">Met wie? (e-mailadres)</span>
+                        <input type="email" id="email" name="email" required placeholder="bijvoorbeeld daan@voorbeeld.nl" class="mt-1 block w-full border border-slate-300 rounded-lg p-2">
+                    </label>
+                    <button type="submit" class="w-full bg-brand text-white font-semibold py-2 rounded-lg hover:bg-brand-dark">Delen</button>
+                </form>
+            </section>
 
-        <h2 class="text-2xl font-semibold mb-4">Bestanden Gedeeld met Jou</h2>
-        <ul class="list-disc pl-5 space-y-2">
-            <?php if (!empty($shared_files)): ?>
-                <?php foreach ($shared_files as $file): ?>
-                    <li class='bg-white shadow-md rounded-lg p-4 flex justify-between'>
-                        <?php if ($file['file_path']): ?>
-                            <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo htmlspecialchars($file['file_name']); ?></a>
-                        <?php else: ?>
-                            <span><?php echo htmlspecialchars($file['file_name']); ?></span>
-                        <?php endif; ?>
-                        <span class="text-gray-500 text-sm">van <?php echo htmlspecialchars($file['shared_by_name']); ?></span>
-                    </li>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <li class='text-gray-500'>Er zijn geen bestanden met jou gedeeld.</li>
-            <?php endif; ?>
-        </ul>
-    </div>
+            <section>
+                <h2 class="text-xl font-bold text-gray-900 mb-3">Gedeeld met jou <span class="text-gray-400 font-normal">(<?php echo count($shared_files); ?>)</span></h2>
+                <?php if (empty($shared_files)): ?>
+                    <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-gray-500">Er zijn nog geen bestanden met jou gedeeld.</div>
+                <?php endif; ?>
+                <ul class="space-y-3">
+                    <?php foreach ($shared_files as $file): [$icon, $bg] = file_icon($file['file_name']); ?>
+                        <li class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+                            <span class="w-11 h-11 rounded-lg <?php echo $bg; ?> flex items-center justify-center text-xl"><?php echo $icon; ?></span>
+                            <div class="flex-1 min-w-0">
+                                <?php if ($file['file_path']): ?>
+                                    <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" class="font-medium text-gray-900 hover:text-brand truncate block"><?php echo htmlspecialchars($file['file_name']); ?></a>
+                                <?php else: ?>
+                                    <span class="font-medium text-gray-500 truncate block"><?php echo htmlspecialchars($file['file_name']); ?> (verwijderd)</span>
+                                <?php endif; ?>
+                                <div class="text-xs text-gray-500">van <?php echo htmlspecialchars($file['shared_by_name']); ?></div>
+                            </div>
+                            <?php if ($file['file_path']): ?>
+                                <a href="<?php echo htmlspecialchars($file['file_path']); ?>" download class="text-sm text-brand font-semibold hover:underline">Download</a>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </section>
+        </div>
+    </main>
 </body>
 </html>

@@ -23,66 +23,60 @@ if (isset($_SESSION['message'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bestanden Beheer</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/tailwind.css">
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
-    <div class="container mx-auto px-4 py-8 w-full max-w-3xl">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold">Bestanden Beheer</h2>
-            <a href="logout.php" class="bg-red-500 text-white font-bold py-2 px-4 rounded-md hover:bg-red-600 transition duration-200">
-                Uitloggen
-            </a>
-        </div>
-
+<body class="bg-slate-50 text-gray-800 min-h-screen">
+    <?php include 'header.php'; include 'file_helpers.php'; ?>
+    <main class="max-w-5xl mx-auto px-4 py-8">
         <?php if ($message): ?>
-            <div class='bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow mb-4' role='alert'>
-                <strong class='font-bold'>Succes!</strong>
-                <span class='block sm:inline'><?php echo $message; ?></span>
-            </div>
+            <div class="mb-6 rounded-lg bg-green-50 border border-green-200 text-green-800 px-4 py-3" role="alert"><?php echo $message; ?></div>
         <?php endif; ?>
 
-        <h2 class="text-2xl font-semibold mb-6 text-center">Upload een bestand</h2>
-        <div class="mb-4 text-center">
-            <a href="share.php" class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition duration-200">
-                Bestanden Delen
-            </a>
+        <?php
+        // Files uploaded by the logged-in user
+        $stmt = $pdo->prepare("SELECT * FROM files WHERE uploaded_by = ? ORDER BY upload_date DESC");
+        $stmt->execute([$_SESSION['user_id']]);
+        $files = $stmt->fetchAll();
+        ?>
+
+        <div class="grid gap-6 md:grid-cols-3">
+            <section class="md:col-span-1">
+                <form action="upload.php" method="post" enctype="multipart/form-data" class="bg-white rounded-xl border border-slate-200 p-5">
+                    <h2 class="font-semibold text-gray-900 mb-3">Bestand uploaden</h2>
+                    <label class="block cursor-pointer rounded-lg border-2 border-dashed border-slate-300 p-6 text-center hover:border-brand hover:bg-sky-50 transition">
+                        <span class="block text-3xl">⬆️</span>
+                        <span id="gekozen" class="block mt-2 text-sm text-gray-600">Kies een bestand</span>
+                        <input type="file" name="uploadedFile" required class="hidden" onchange="document.getElementById('gekozen').textContent = this.files[0] ? this.files[0].name : 'Kies een bestand'">
+                    </label>
+                    <p class="text-xs text-gray-500 mt-2">JPG, PNG, GIF, PDF of DOCX</p>
+                    <input type="submit" value="Uploaden" name="submit" class="mt-4 w-full bg-brand text-white font-semibold py-2 rounded-lg cursor-pointer hover:bg-brand-dark">
+                </form>
+                <a href="share.php" class="mt-4 block text-center bg-white rounded-xl border border-slate-200 p-4 text-brand font-semibold hover:bg-sky-50">Bestanden delen of bekijken wat met jou gedeeld is →</a>
+            </section>
+
+            <section class="md:col-span-2">
+                <h1 class="text-xl font-bold text-gray-900 mb-3">Mijn bestanden <span class="text-gray-400 font-normal">(<?php echo count($files); ?>)</span></h1>
+                <?php if (empty($files)): ?>
+                    <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-gray-500">Je hebt nog geen bestanden. Upload er links een.</div>
+                <?php endif; ?>
+                <ul class="space-y-3">
+                    <?php foreach ($files as $file): [$icon, $bg] = file_icon($file['file_name']); ?>
+                        <li class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+                            <span class="w-11 h-11 rounded-lg <?php echo $bg; ?> flex items-center justify-center text-xl"><?php echo $icon; ?></span>
+                            <div class="flex-1 min-w-0">
+                                <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" class="font-medium text-gray-900 hover:text-brand truncate block"><?php echo htmlspecialchars($file['file_name']); ?></a>
+                                <div class="text-xs text-gray-500"><?php echo htmlspecialchars(trim(file_size($file['file_path']) . ' · ' . date('d-m-Y', strtotime($file['upload_date'])), ' ·')); ?></div>
+                            </div>
+                            <a href="<?php echo htmlspecialchars($file['file_path']); ?>" download="<?php echo htmlspecialchars($file['file_name']); ?>" class="text-sm text-brand font-semibold hover:underline">Download</a>
+                            <form action="delete.php" method="post" onsubmit="return confirm('Weet je zeker dat je dit bestand wilt verwijderen?');">
+                                <input type="hidden" name="fileId" value="<?php echo (int)$file['id']; ?>">
+                                <input type="submit" value="Verwijder" class="text-sm text-red-600 hover:underline cursor-pointer bg-transparent">
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </section>
         </div>
-        <form action="upload.php" method="post" enctype="multipart/form-data" class="mb-8 bg-white shadow-md rounded-lg p-6">
-            <label class="block mb-2 text-sm font-medium text-gray-700">Selecteer een bestand om te uploaden:</label>
-            <input type="file" name="uploadedFile" required class="block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500 mb-4">
-            <input type="submit" value="Upload Bestand" name="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700 transition duration-200">
-            <p class="text-sm text-gray-500 mt-2">Toegestane bestandstypen: JPG, PNG, GIF, PDF, DOCX.</p>
-        </form>
-
-        <h2 class="text-2xl font-semibold mb-4">Geüploade Bestanden</h2>
-        <ul class="list-disc pl-5 space-y-4">
-            <?php
-            // Haal bestanden op die door de gebruiker zijn geüpload
-            $userId = $_SESSION['user_id'];
-            $stmt = $pdo->prepare("SELECT * FROM files WHERE uploaded_by = ?");
-            $stmt->execute([$userId]);
-            $files = $stmt->fetchAll();
-
-            if (empty($files)) {
-                echo "<p class='text-gray-500'>Er zijn nog geen bestanden geüpload.</p>";
-            } else {
-                foreach ($files as $file) {
-                    echo "<li class='bg-white shadow-md rounded-lg p-4 flex items-center justify-between'>
-                            <div class='flex items-center'>
-                                <span class='text-blue-600 hover:underline'><a href='" . htmlspecialchars($file['file_path']) . "' target='_blank'>" . htmlspecialchars($file['file_name']) . "</a></span> 
-                                <a href='" . htmlspecialchars($file['file_path']) . "' download='" . htmlspecialchars($file['file_name']) . "' class='text-gray-500 hover:text-gray-700 ml-4'>Download</a>
-                            </div>
-                            <div class='flex items-center'>
-                                <form action='delete.php' method='post' class='inline ml-4' onsubmit=\"return confirm('Weet je zeker dat je dit bestand wilt verwijderen?');\">
-                                    <input type='hidden' name='fileId' value='" . (int)$file['id'] . "'>
-                                    <input type='submit' value='Verwijder' class='bg-red-500 text-white font-bold py-1 px-2 rounded-md hover:bg-red-600 transition duration-200'>
-                                </form>
-                            </div>
-                          </li>";
-                }
-            }
-            ?>
-        </ul>
-    </div>
+    </main>
 </body>
 </html>
