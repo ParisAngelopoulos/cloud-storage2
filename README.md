@@ -17,8 +17,8 @@ Een soort mini Google Drive. Je logt in, uploadt je bestanden, bekijkt en verwij
 
 - **Account aanmaken en inloggen**. Wachtwoorden worden versleuteld opgeslagen met `password_hash`.
 - **Uploaden**: JPG, PNG, GIF, PDF en DOCX. Andere bestandstypes worden geweigerd.
-- **Je eigen bestanden** bekijken en verwijderen (`home.php`).
-- **Delen** met een andere gebruiker op e-mailadres, en zien wat er met jou gedeeld is (`share.php`).
+- **Je eigen bestanden** bekijken, downloaden en verwijderen (`home.php`). Je kunt alleen je eigen bestanden verwijderen.
+- **Delen** met een andere gebruiker op e-mailadres, en de bestanden openen die met jou gedeeld zijn (`share.php`). Je kunt alleen je eigen bestanden delen.
 - **Admin-pagina** met het aantal gebruikers in een grafiek (Chart.js). Alleen gebruikers met de rol `admin` komen erin.
 - Alle databasequery's gebruiken **prepared statements** (PDO).
 
@@ -32,11 +32,20 @@ Je hebt een lokale webserver met PHP en MySQL nodig, bijvoorbeeld XAMPP.
    ```
 2. Maak in phpMyAdmin een database aan met de naam `file_sharing`.
 3. Importeer daarin het bestand `file_sharing (4).sql`.
-4. Ga naar http://localhost/cloud-storage2/files en maak een account aan.
+4. Ga naar http://localhost/cloud-storage2/files en log in met een testaccount.
 
-De verbinding met de database staat in `files/db.php`. Geüploade bestanden komen in `files/uploads/`; die map wordt vanzelf aangemaakt.
+De verbinding met de database staat in `files/db.php`. Geüploade bestanden komen in `files/uploads/`.
 
-Wil je de admin-pagina zien? Zet dan in de tabel `users` bij je eigen account de kolom `role` op `admin`.
+### Testaccounts
+
+In de database staan al bestanden en gedeelde bestanden, zodat je meteen kunt rondkijken.
+
+| Gebruikersnaam | Wachtwoord | Wat je ziet |
+| --- | --- | --- |
+| `admin` | `admin123` | De admin-pagina met het aantal gebruikers |
+| `paris` | `welkom123` | Een cv en een vakantiefoto, plus 3 bestanden die met hem gedeeld zijn |
+| `sanne` | `welkom123` | Een rooster en notulen |
+| `daan` | `welkom123` | Een logo-ontwerp, plus 2 gedeelde bestanden |
 
 ## Mappen
 

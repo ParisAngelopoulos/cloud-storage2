@@ -9,8 +9,11 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 
-// Fetch files shared with the logged-in user
-$stmt = $pdo->prepare("SELECT * FROM shared_files WHERE shared_with = ?");
+// Fetch files shared with the logged-in user, with the path so they can be opened
+$stmt = $pdo->prepare("SELECT shared_files.file_name, shared_files.shared_by_name, files.file_path
+                       FROM shared_files
+                       LEFT JOIN files ON files.file_name = shared_files.file_name AND files.uploaded_by = shared_files.shared_by
+                       WHERE shared_files.shared_with = ?");
 $stmt->execute([$userId]); // Use user ID here instead of username
 $shared_files = $stmt->fetchAll();
 
@@ -28,7 +31,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute(['email' => $email]);
     $user = $stmt->fetch();
 
-    if ($user) {
+    // You can only share your own files
+    $own_files = array_column($uploaded_files, 'file_name');
+
+    if (!in_array($file_name, $own_files, true)) {
+        $_SESSION['message'] = "Je kunt alleen je eigen bestanden delen.";
+    } elseif (!$user) {
+        $_SESSION['message'] = "Er is geen gebruiker met het e-mailadres $email.";
+    } elseif ($user['id'] == $_SESSION['user_id']) {
+        $_SESSION['message'] = "Je kunt een bestand niet met jezelf delen.";
+    } else {
         $shared_with_id = $user['id']; // ID of the user the file is shared with
         $shared_by_id = $_SESSION['user_id']; // ID of the current (logged-in) user
         $shared_by_name = $_SESSION['username']; // Name of the current user
@@ -58,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
     <div class="container mx-auto px-4 py-8 w-full max-w-lg">
-        <h1 class="text-3xl font-bold mb-6 text-center">Deel een Bestand</h1>
+        <a href="home.php" class="text-blue-600 hover:underline">&larr; Terug naar mijn bestanden</a>
+        <h1 class="text-3xl font-bold mb-6 mt-4 text-center">Deel een Bestand</h1>
         
         <?php if (isset($_SESSION['message'])): ?>
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
@@ -87,7 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <ul class="list-disc pl-5 space-y-2">
             <?php if (!empty($shared_files)): ?>
                 <?php foreach ($shared_files as $file): ?>
-                    <li class='bg-white shadow-md rounded-lg p-4'><?php echo htmlspecialchars($file['file_name']); ?></li>
+                    <li class='bg-white shadow-md rounded-lg p-4 flex justify-between'>
+                        <?php if ($file['file_path']): ?>
+                            <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo htmlspecialchars($file['file_name']); ?></a>
+                        <?php else: ?>
+                            <span><?php echo htmlspecialchars($file['file_name']); ?></span>
+                        <?php endif; ?>
+                        <span class="text-gray-500 text-sm">van <?php echo htmlspecialchars($file['shared_by_name']); ?></span>
+                    </li>
                 <?php endforeach; ?>
             <?php else: ?>
                 <li class='text-gray-500'>Er zijn geen bestanden met jou gedeeld.</li>

@@ -12,7 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['uploadedFile']) && $_FILES['uploadedFile']['error'] === UPLOAD_ERR_OK) {
         $bestandsNaam = basename($_FILES['uploadedFile']['name']);
         $uploadMap = 'uploads/'; 
-        $doelBestand = $uploadMap . $bestandsNaam;
+        // Unieke naam op de server, zodat twee mensen met hetzelfde bestandsnaam elkaars bestand niet overschrijven
+        $doelBestand = $uploadMap . uniqid() . '_' . $bestandsNaam;
 
         // Maak de uploads directory aan als deze niet bestaat
         if (!is_dir($uploadMap)) {

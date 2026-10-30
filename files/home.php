@@ -74,7 +74,7 @@ if (isset($_SESSION['message'])) {
                             </div>
                             <div class='flex items-center'>
                                 <form action='delete.php' method='post' class='inline ml-4' onsubmit=\"return confirm('Weet je zeker dat je dit bestand wilt verwijderen?');\">
-                                    <input type='hidden' name='fileToDelete' value='" . htmlspecialchars($file['file_name']) . "'>
+                                    <input type='hidden' name='fileId' value='" . (int)$file['id'] . "'>
                                     <input type='submit' value='Verwijder' class='bg-red-500 text-white font-bold py-1 px-2 rounded-md hover:bg-red-600 transition duration-200'>
                                 </form>
                             </div>
